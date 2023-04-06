@@ -1,3 +1,5 @@
+Added Firmware 2.6 alpha and toolbox
+
 use PiCoFly FW2.5+unlock.uf2 otherwise flash both fw_2.5.uf2 and unlock.uf2
 
-If you already have a 2.x firmware you can unlock using the .bin files provided via hekate
+If you already have a 2.x firmware you can unlock using the .bin files provided via hekate  -DO NOT DO THIS. BREAKS INSTALL
