@@ -1,0 +1,87 @@
+.program sd_clk
+.side_set 1
+.wrap_target
+    ; open-drain RST switcher to keep the CPU in reset state
+    set pindirs, 0     side 1 ; side-set push-pull eMMC clocker (2mA limit is set to prevent damage)
+    irq clear 0        side 0
+    set pindirs, 1     side 1
+    irq clear 0        side 0
+.wrap
+
+.program out_cmd_or_dat
+.wrap_target
+    out x, 16
+    irq wait 0 [1] ; the next cmd will go on falling edge
+send_loop:
+    out pindirs, 1 ; use open-drain just in case, to prevent 3.3v damage
+    jmp x-- send_loop
+    irq clear 1  ; unblock the reader
+    out NULL, 32 ; clear the osr
+.wrap
+
+.program in_cmd_or_dat
+.wrap_target
+    out x, 32  ;get configuration
+    irq wait 1 ;wait for cmd to send
+    irq wait 0 ;sync with clock, next cmd will go at rising edge
+data_wait:
+    jmp pin, data_wait [1] ; sync pin wait with rising edge
+read_loop:
+    in pins, 1 ; here we always at the rising edge
+    jmp x-- read_loop
+    push
+.wrap
+
+.program glitch_sniff_cmd
+.wrap_target
+next_loop:
+    mov x, osr ; mmc command pre-loaded bits count (48 - 1 - 1)
+wait_for_start_bit:
+    wait 0 pin, 31
+    wait 1 pin, 31
+    jmp pin wait_for_start_bit ; wait for cmd start bit on the rising edge
+    wait 0 pin, 31
+; waits separated by only 1 instruction, should be able to catch 50 MHz
+    in NULL, 1
+read_loop:
+    wait 1 pin, 31
+    in pins, 1 ; command sniffer
+    wait 0 pin, 31
+    jmp x-- read_loop
+    irq clear 2 ; 'some cmd has passed' trigger
+    mov x, isr ; save the last 16 bit of command
+    push ; send the rest 16 bits of data
+    jmp x != y, next_loop ; compare the glitch pattern (0x1351, read block + crc)
+    irq clear 0 ; 'glitch pattern' trigger
+.wrap
+
+.program glitch_dat_waiter
+.wrap_target
+    mov x, y    ; data length pre-loaded counter (512 + 16 - 1)
+wait_for_start_bit:
+    wait 0 pin, 30
+    wait 1 pin, 30
+    jmp pin wait_for_start_bit ; wait for dat start bit of the rising edge
+    wait 0 pin, 30
+skip_loop_dat:
+    wait 1 pin, 30
+    ;in pins, 1 ; data sniffer (not needed anymore)
+    wait 0 pin, 30
+    jmp x-- skip_loop_dat ; skip the required data ticks
+    irq clear 1 ; 'data transfer done' trigger
+.wrap
+
+.program glitch_trigger
+.side_set 1
+.wrap_target
+    out x, 32 side 0   ; receive wait timing
+    out y, 32 side 0   ; receive pulse timing
+    irq wait 0 side 0  ; wait for read 13
+    irq wait 1 side 0  ; wait for data transfer
+    irq wait 2 side 0  ; wait for status request (should be NOPped for Mariko)
+    irq wait 2 side 0  ; wait for status reply (should be NOPped for Mariko)
+wait_for_timing:
+    jmp x--, wait_for_timing side 0
+glitch_en:
+    jmp y--, glitch_en side 1
+.wrap
