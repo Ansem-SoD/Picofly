@@ -1,4 +1,6 @@
-Firmware 2.70 Changelog
+Firmware 2.70+ Changelog
+
+-- Updated to 2.73 (sorry guys I was away for the weekend)
 
 - now it's only 3 colours: blue (glitching), white (flashing), yellow (error code). This was made to make possible pi pico debugging + get rid of RGB/GRB issues
 Error codes list (= is long pulse, * is short pulse):
