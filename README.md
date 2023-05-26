@@ -15,12 +15,12 @@ Error codes list (= is long pulse, * is short pulse):
 - *= CMD is not connected
 - =* D0 is not connected
 - == CLK is not connected
-- 
+ 
 - =** eMMC init failure during glitch process
 - =*= CPU never reach BCT check, should not happen
 - ==* CPU always reach BCT check (no glitch reaction, check mosfet)
 - === Glitch attempt limit reached, cannot glitch
-- 
+-
 - =*** eMMC init failure
 - =**= eMMC write failure - comparison failed
 - =*=* eMMC write failure - write failed
