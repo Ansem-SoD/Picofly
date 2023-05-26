@@ -10,7 +10,7 @@ As of firmware 2.70 and beyond, the debug led color and codes have chanaged.
 Error codes list (= is long pulse, * is short pulse):
 
 - = USB flashing done
--
+
 - ** RST is not connected
 - *= CMD is not connected
 - =* D0 is not connected
@@ -20,7 +20,7 @@ Error codes list (= is long pulse, * is short pulse):
 - =*= CPU never reach BCT check, should not happen
 - ==* CPU always reach BCT check (no glitch reaction, check mosfet)
 - === Glitch attempt limit reached, cannot glitch
--
+
 - =*** eMMC init failure
 - =**= eMMC write failure - comparison failed
 - =*=* eMMC write failure - write failed
