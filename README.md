@@ -6,8 +6,10 @@ all credits goto Rehius, flynnsmt4, Vittorio and anyone else who helped for the 
 # Troubleshooting
 As of firmware 2.70 and beyond, the debug led color and codes have chanaged.
 
-- now it's only 3 colours: blue (glitching), white (flashing), yellow (error code). This was made to make possible pi pico debugging + get rid of RGB/GRB issues
-Error codes list (= is long pulse, * is short pulse):
+- now it's only 3 colours: blue (glitching), white (flashing), yellow (error code). 
+This was made to make possible pi pico debugging + get rid of RGB/GRB issues
+
+###Error codes list (= is long pulse, * is short pulse):
 
 - = USB flashing done
 
