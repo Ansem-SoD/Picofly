@@ -1,0 +1,86 @@
+name: Build PicoFly binaries
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install dependencies
+        run: sudo apt-get update && sudo apt-get install -y gcc-arm-none-eabi libnewlib-arm-none-eabi build-essential
+  
+      - name: Checkout rehius/usk
+        uses: actions/checkout@v3
+        with:
+          repository: rehius/usk
+          path: usk
+      
+      - name: Checkout rehius/busk
+        uses: actions/checkout@v3
+        with:
+          repository: rehius/busk
+          path: busk
+
+      - name: Checkout raspberrypi/pico-sdk
+        uses: actions/checkout@v3
+        with:
+          repository: raspberrypi/pico-sdk
+          path: pico-sdk
+          submodules: recursive
+          
+      - name: Set PICO_SDK_PATH environment variable
+        run: |
+          echo "PICO_SDK_PATH=$GITHUB_WORKSPACE/pico-sdk" >> $GITHUB_ENV
+      - name: Create symbolic link of pico_sdk_import.cmake in busk and usk sources
+        run: |
+          ln -s $PICO_SDK_PATH/external/pico_sdk_import.cmake $GITHUB_WORKSPACE/busk/pico_sdk_import.cmake
+          ln -s $PICO_SDK_PATH/external/pico_sdk_import.cmake $GITHUB_WORKSPACE/usk/pico_sdk_import.cmake
+      - name: Create 'generated' directory in usk source directory
+        run: mkdir -p $GITHUB_WORKSPACE/usk/generated
+
+      - name: Build busk
+        run: | 
+          # Backup and modify memmap_default.ld for busk build
+          cp $GITHUB_WORKSPACE/pico-sdk/src/rp2_common/pico_standard_link/memmap_default.ld $GITHUB_WORKSPACE/pico-sdk/src/rp2_common/pico_standard_link/memmap_default.ld.bak
+          sed -i 's/RAM(rwx) : ORIGIN =  0x20000000, LENGTH = 256k/RAM(rwx) : ORIGIN = 0x20038000, LENGTH = 32k/g' $GITHUB_WORKSPACE/pico-sdk/src/rp2_common/pico_standard_link/memmap_default.ld
+          mkdir -p $GITHUB_WORKSPACE/build/busk
+          cd $GITHUB_WORKSPACE/build/busk
+          cmake $GITHUB_WORKSPACE/busk
+          make
+          make clean
+          cd $GITHUB_WORKSPACE
+          # Restore original memmap_default.ld from backup
+          rm -f $GITHUB_WORKSPACE/pico-sdk/src/rp2_common/pico_standard_link/memmap_default.ld
+          mv $GITHUB_WORKSPACE/pico-sdk/src/rp2_common/pico_standard_link/memmap_default.ld.bak $GITHUB_WORKSPACE/pico-sdk/src/rp2_common/pico_standard_link/memmap_default.ld
+      
+      - name: Build usk
+        run: | 
+          mkdir -p $GITHUB_WORKSPACE/build/usk
+          cd $GITHUB_WORKSPACE/build/usk
+          cmake $GITHUB_WORKSPACE/usk
+          make
+          make clean
+          python3 $GITHUB_WORKSPACE/usk/prepare.py
+          cd $GITHUB_WORKSPACE
+      - name: Generate release tag
+        id: tag
+        run: |
+          USK_VERSION_LO=$(sed -n 's/#define VER_LO \([0-9]*\)/\1/p' $GITHUB_WORKSPACE/usk/config.h)
+          USK_VERSION_HI=$(sed -n 's/#define VER_HI \([0-9]*\)/\1/p' $GITHUB_WORKSPACE/usk/config.h)
+          USK_VERSION=${USK_VERSION_HI}.${USK_VERSION_LO}
+          RELEASE_TAG=PicoFly_${USK_VERSION}_$(date +"%Y.%m.%d_%H-%M")
+          echo "release_tag=$RELEASE_TAG" >> $GITHUB_OUTPUT
+          echo "release_tag=$RELEASE_TAG"
+          
+      - name: Createa a release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ steps.tag.outputs.release_tag }}
+          files: |
+            build/usk/firmware.uf2
+            build/usk/update.bin
+  

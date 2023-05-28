@@ -145,13 +145,12 @@ void inc_tries()
 }
 
 // random() for glitch offset array generation
-static uint32_t get_random_word() {
+static uint32_t get_random_word(int cycles) {
     uint32_t byte;
-    int cycles = 32;
     assert(rosc_hw->status & ROSC_STATUS_ENABLED_BITS);
     for(int i=0; i < cycles; i++) {
-        byte = ((byte << 1) | rosc_hw->randombit);
         busy_wait_at_least_cycles(100);
+        byte = ((byte << 1) | rosc_hw->randombit);
     }
     return byte;
 }
@@ -162,7 +161,7 @@ void prepare_random_array()
     for(int i = 0; i < OFFSET_CNT; i++)
         offsets_array[i] = OFFSET_MIN + OFFSET_DIV*i;
     for (int i = OFFSET_CNT - 1; i > 0; i--) {
-            size_t j = get_random_word() % (i+1);
+            size_t j = get_random_word(32) % (i+1);
             int t = offsets_array[j];
             offsets_array[j] = offsets_array[i];
             offsets_array[i] = t;
@@ -178,7 +177,7 @@ bool glitch_try_offset(int offset, int * width, int edge_limit) {
     inc_tries();
     while (1) {
         reset_cpu();
-        int gres = do_glitch(offset, *width, 300, 6);
+        int gres = do_glitch(offset + get_random_word(3), *width, 300, 6);
         if (gres == GLITCH_RESULT_MISSING)
             missing_count +=1; // MMC has failed to initialize
         else

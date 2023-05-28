@@ -21,10 +21,10 @@
 
 bool write_payload();
 
-// overclock to 200 MHz, pretty stable & enough for the glitch
+// overclock to 300 MHz
 void init_system() {
     vreg_set_voltage(VREG_VOLTAGE_1_30);
-	set_sys_clock_khz(200000, true);
+	set_sys_clock_khz(300000, true);
 }
 
 // filled within "fast check" on eMMC init
@@ -63,9 +63,7 @@ void self_test()
             cmd_ok |= safe_test_voltage(PIN_CMD, 1.8f, 0.2f);
         if (!d0_ok)
             d0_ok |= safe_test_voltage(PIN_DAT, 1.8f, 0.2f);
-        if (!clk_ok)
-            clk_ok |= safe_test_voltage(PIN_CLK, 1.1f, 0.9f);
-        if (rst_ok && cmd_ok && d0_ok && clk_ok)
+        if (rst_ok && cmd_ok && d0_ok)
             break;
     }
     if(!rst_ok)
@@ -79,10 +77,6 @@ void self_test()
     if(!d0_ok)
     {
         halt_with_error(2, 2);
-    }
-    if(!clk_ok)
-    {
-        halt_with_error(3, 2);
     }
 }
 
@@ -162,7 +156,7 @@ int main()
                 burn_fuse();
             }
             add_boot_record(offset);
-            halt_with_error(0, 0);
+            halt_with_error(0, 1);
         }
         if (full_try == 0) {
             rewrite_payload();

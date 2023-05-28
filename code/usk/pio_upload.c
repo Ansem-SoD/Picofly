@@ -43,9 +43,9 @@ void upload_pio()
     // MMC DAT sniffer
     dsniff_pio_offset = pio_add_program(pio1, &glitch_dat_waiter_program);
     pio1->sm[G_DAT0_SM].shiftctrl = c.shiftctrl;
-    // set y to amount of data ticks to skip (512 + 16 - 1)
-    val = 527;
-    for (int i = 2; i >= 0; i--) {
+    // set y to amount of data ticks to skip
+    val = 528 * 300 / 25;
+    for (int i = 5; i >= 0; i--) {
         pio_sm_exec(pio1, G_DAT0_SM, pio_encode_set(pio_y, (val >> i*4) & 15));
         pio_sm_exec(pio1, G_DAT0_SM, pio_encode_in(pio_y, 4));
     }

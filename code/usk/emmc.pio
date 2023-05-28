@@ -57,17 +57,13 @@ read_loop:
 
 .program glitch_dat_waiter
 .wrap_target
-    mov x, y    ; data length pre-loaded counter (512 + 16 - 1)
-wait_for_start_bit:
-    wait 0 pin, 30
-    wait 1 pin, 30
-    jmp pin wait_for_start_bit ; wait for dat start bit of the rising edge
-    wait 0 pin, 30
-skip_loop_dat:
-    wait 1 pin, 30
-    ;in pins, 1 ; data sniffer (not needed anymore)
-    wait 0 pin, 30
-    jmp x-- skip_loop_dat ; skip the required data ticks
+    mov x, y    ; data length pre-loaded counter (512 + 16 - 1) * 8
+wait_for_zero_filtered:
+    jmp pin, wait_for_zero_filtered
+    jmp pin, wait_for_zero_filtered
+    jmp pin, wait_for_zero_filtered
+wait_for_data_pack:
+    jmp x-- wait_for_data_pack
     irq clear 1 ; 'data transfer done' trigger
 .wrap
 
