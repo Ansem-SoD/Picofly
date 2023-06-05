@@ -1,35 +1,21 @@
-Firmware 2.70+ Changelog
+ChangeLog:
 
--- Updated to 2.73 (sorry guys I was away for the weekend)
-
-- now it's only 3 colours: blue (glitching), white (flashing), yellow (error code). This was made to make possible pi pico debugging + get rid of RGB/GRB issues
-Error codes list (= is long pulse, * is short pulse):
-
-= USB flashing done
-
-** RST is not connected
-*= CMD is not connected
-=* D0 is not connected
-== CLK is not connected
-
-=** eMMC init failure during glitch process
-=*= CPU never reach BCT check, should not happen
-==* CPU always reach BCT check (no glitch reaction, check mosfet)
-=== Glitch attempt limit reached, cannot glitch
-
-=*** eMMC init failure
-=**= eMMC write failure - comparison failed
-=*=* eMMC write failure - write failed
-=*== eMMC test failure - read failed
-==** eMMC read failed during firmware update
-==*= BCT copy failed - write failure
-===* BCT copy failed - comparison failure
-==== BCT copy failed - read failure
-
-The second major feature is CPU downvoltage. This might be useful when your MOSFET (or the wire) is not strong enough for the glitch. (do you remember the case where you press "RESET" on the rp2040 when joycon logo appears to make it working? that's it, system lowers CPU voltage)
-Therefore you can solder two additional wires to the chip so it could lower the CPU voltage making the glitch easier. This is optional! only if you really need.
-
-Waveshare rp2040: SDA=12, SCL=13
-Pi Pico: SDA = 19, SCL = 20
-XIAO 2040: SDA=3, SCL=4
-ItayBitsy 2040: SDA = 18, SCL = 19
+v2.0 + Active MMC communication
+v2.1 + Toshiba support
+v2.2 + Fix Toshiba boot fail
+v2.3 + SanDisk support
+v2.4 + Faster Toshiba boot
+v2.5 + fix OFW boot
+v2.6 + software update, xiao & itsy support
+v2.61 + Instinct-NX sdloader, bug fixes
+v2.62 + Make 16.0.1 happy (fix OFW boot)
+v2.63 + roll back some 2.62 boot speed tricks
+v2.64 + enable back the board detection
+v2.65 + RP Pico support, double reset removed
+v2.66 + Bypass to OFW after update for proper fuse burning
+v2.67 + Don't bypass to OFW on first install
+v2.70 + new LED indication, i2c undervoltage hack
+v2.71 + support for SQc open-source board
+v2.72 + disable CLK check, it's unstable
+v2.73 + add LED signal on success
+v2.74 + 300 mhz precision
